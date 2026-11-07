@@ -182,10 +182,24 @@
     reload: true
   when: swap_enabled | default(true) | bool
 
-- name: Install Tailscale
-  shell: curl -fsSL https://tailscale.com/install.sh | sh
-  args:
-    creates: /usr/bin/tailscale
+- name: Add Tailscale apt signing key
+  get_url:
+    url: "https://pkgs.tailscale.com/stable/ubuntu/{{ ansible_facts['distribution_release'] }}.noarmor.gpg"
+    dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Add Tailscale apt repository
+  apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/ubuntu {{ ansible_facts['distribution_release'] }} main"
+    filename: tailscale
+    state: present
+
+- name: Install Tailscale from the signed apt repository
+  apt:
+    name: tailscale
+    state: present
 
 - name: Validate optional remote desktop toggles
   assert:

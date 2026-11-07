@@ -57,8 +57,8 @@ secret values while checking whether they are present.
 - Review Terraform provider lockfile changes.
 - Firecrawl consists of coordinated upstream images that may default to moving
   tags; pin them in ignored local vars for production rollouts.
-- Review remote install scripts for Tailscale and Claude CLI, plus OS/npm
-  package sources used by optional Codex CLI support.
+- Review remote install scripts for Claude CLI and uv, the Tailscale apt
+  signing key, plus OS/npm package sources used by optional Codex CLI support.
 - Treat NoMachine as an explicit proprietary-package decision.
 - Treat every new public route, image bump, and remote install source as a
   reviewable change.

@@ -18,6 +18,9 @@
   such as `50-cloud-init.conf` could override the old edits. The file also sets
   `KbdInteractiveAuthentication no`, and the run fails when `sshd -T` shows
   other effective values.
+- Install Tailscale from its signed apt repository instead of piping
+  `install.sh` into a root shell. The keyring and source line match what
+  `install.sh` writes, so existing hosts see no change.
 
 ## v3.0.1 - 2026-11-07
 
