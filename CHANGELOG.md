@@ -2,11 +2,21 @@
 
 ## Unreleased
 
+## v4.0.1 - 2026-11-07
+
+v4.0.1 is documentation only: lessons from a bootstrap lockout, and a hard
+safety rule for the agent user.
+
 - `LEARNINGS.md`: join Tailscale right after the first run, keep the two
   bootstrap `/32` values equal, recover a lockout through the Hetzner web
   console, fix an invalid `hctf` token, and delete saved plans after apply.
 - `SKILL.md`: hard safety rule 12 runs coding agents as `agent_user`, never as
   the admin user, which keeps passwordless sudo and Docker on purpose.
+
+Validation:
+
+- `git diff --check`
+- Scan of the new `LEARNINGS.md` lines for IP addresses and hostnames
 
 ## v4.0.0 - 2026-11-07
 
