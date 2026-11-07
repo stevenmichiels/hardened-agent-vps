@@ -1,6 +1,6 @@
 ---
 name: hardened-agent-vps
-description: Provision and harden a Hetzner VPS with Terraform and Ansible as a private AI-agent and automation workbench, with optional Claude Code CLI, Codex CLI, Firecrawl, Windmill, and remote desktop profiles, plus strict SSH/firewall guardrails, secret-safe env management, backups, health checks, and repeatable service lifecycle steps.
+description: Provision and harden a Hetzner VPS with Terraform and Ansible as a private AI-agent and automation workbench, with optional Claude Code CLI, Codex CLI, Firecrawl, and remote desktop profiles, plus strict SSH/firewall guardrails, secret-safe env management, backups, health checks, and repeatable service lifecycle steps.
 ---
 
 # SKILL: hardened-agent-vps (Hetzner + Terraform + Ansible private workbench)
@@ -12,7 +12,6 @@ Provision and harden a Hetzner Cloud VPS in a repeatable, safe-by-default workfl
 - Baseline tools: Docker, Docker Compose v2, jq, gh, ffmpeg, screen, Python 3/pipx
 - Python operator tooling: uv/uvx installed system-wide by default; Poetry remains project-specific compatibility, not a VPS baseline
 - Optional: deploy a private Firecrawl self-host stack for crawl/scrape/PDF extraction workflows
-- Optional: deploy a private Windmill stack for script, flow, and internal-tool experiments
 - Optional: install a lightweight NoMachine/XFCE remote desktop restricted to the Tailscale path
 - Support one VPS as an agent workbench for Claude Code CLI, Codex CLI, and service agents while keeping live apps, staging, repos, and agent services in separate zones
 - Provide operator commands for status, backups, off-box backup verification, health alerts, and Docker cleanup
@@ -49,9 +48,8 @@ Provision and harden a Hetzner Cloud VPS in a repeatable, safe-by-default workfl
   - `/home/<admin_user>/agent-workspaces/claude-code` for disposable/agent-specific workspaces
   - `/home/<admin_user>/agent-workspaces/codex-cli` for Codex CLI scratch work and separate sessions
   - `/opt/firecrawl` plus `/etc/firecrawl` for the optional private Firecrawl stack
-  - `/var/lib/windmill` plus `/etc/windmill` for the optional private Windmill stack
   - `/var/backups` for backups
-- The Ansible baseline creates the parent zone directories by default: `/srv/apps`, `/home/<admin_user>/repos`, `/home/<admin_user>/agent-workspaces`, and `/var/backups`. The Firecrawl role manages `/opt/firecrawl` and `/etc/firecrawl` only when Firecrawl is enabled; the Windmill role manages `/var/lib/windmill` and `/etc/windmill` only when Windmill is enabled. Create concrete app/repo directories only when the real app or repo name is known.
+- The Ansible baseline creates the parent zone directories by default: `/srv/apps`, `/home/<admin_user>/repos`, `/home/<admin_user>/agent-workspaces`, and `/var/backups`. The Firecrawl role manages `/opt/firecrawl` and `/etc/firecrawl` only when Firecrawl is enabled. Create concrete app/repo directories only when the real app or repo name is known.
 - Prefer separate Unix users for persistent services when co-hosting multiple agents: an admin SSH user for operators, and service users such as `claude-agent` and `codex-agent` when their permissions or runtime state need isolation.
 - Treat Claude Code CLI and Codex CLI as interactive coding tools by default: run them in SSH/tmux/mosh sessions against Git repos or disposable workspaces, with separate auth/config directories when possible.
 - Use the dual-agent review pattern when helpful: Claude Code develops, Codex produces a read-only Markdown review. Do not let both agents edit the same worktree at the same time.
@@ -223,11 +221,10 @@ Provision and harden a Hetzner Cloud VPS in a repeatable, safe-by-default workfl
 5) Never print secrets. Never commit API keys, bot tokens, OAuth files, pairing state, or service `.env` files.
 6) Keep optional service ports private by default: bind published ports to `127.0.0.1` and access via SSH tunnel or Tailscale.
 7) Keep Firecrawl private by default: bind the API to `127.0.0.1`.
-8) Keep Windmill private by default: bind it to `127.0.0.1` or a Tailscale IP, never public `0.0.0.0`, and require generated or explicit Postgres credentials in `/etc/windmill/.env` before startup.
-9) Keep optional desktop access private: NoMachine over Tailscale only, no public GUI ports.
-10) For existing servers, never apply Terraform if plan shows `hcloud_server` destroy/replace unless rebuild is explicitly intended.
-11) Keep deterministic artifacts as source of truth: Terraform + Ansible templates in this skill.
-12) Keep production apps, staging, repos, and agent workspaces isolated; never let an agent directly mutate production runtime files or share production secrets by default.
+8) Keep optional desktop access private: NoMachine over Tailscale only, no public GUI ports.
+9) For existing servers, never apply Terraform if plan shows `hcloud_server` destroy/replace unless rebuild is explicitly intended.
+10) Keep deterministic artifacts as source of truth: Terraform + Ansible templates in this skill.
+11) Keep production apps, staging, repos, and agent workspaces isolated; never let an agent directly mutate production runtime files or share production secrets by default.
 
 ## Credential loading (Hetzner token)
 - Preferred/default path for local controller work: use the protected `hctf` wrapper when available.
@@ -294,13 +291,12 @@ Provision and harden a Hetzner Cloud VPS in a repeatable, safe-by-default workfl
 - `claude_skills_dir` (default: `/home/<admin_user>/.claude/skills`)
 - `claude_codex_review_skill_src_dir` (default: `templates/claude-skills/codex-review`)
 - `vps_zone_dirs_enabled` (default: `true`)
-- `vps_zone_dirs` (default parent zones: `/srv/apps`, `/home/<admin_user>/repos`, `/home/<admin_user>/agent-workspaces`, `/var/backups`; VPS ops manages the backup/monitoring paths; Firecrawl role manages `/opt/firecrawl` and `/etc/firecrawl` when enabled; Windmill role manages `/var/lib/windmill` and `/etc/windmill` when enabled)
+- `vps_zone_dirs` (default parent zones: `/srv/apps`, `/home/<admin_user>/repos`, `/home/<admin_user>/agent-workspaces`, `/var/backups`; VPS ops manages the backup/monitoring paths; Firecrawl role manages `/opt/firecrawl` and `/etc/firecrawl` when enabled)
 - `install_vps_ops` (default: `true`; installs `agent-vps` operator commands, backups, health checks, and cleanup timers)
 - `vps_ops_env_dir`, `vps_ops_env_file` (defaults: `/etc/agent-vps`, `/etc/agent-vps/.env`; sole source for optional Telegram notification settings for health-state changes)
 - `install_claude_code` (default: `false`; installs Claude Code CLI with the official installer)
 - `install_codex_cli` (default: `false`; installs Codex CLI with npm plus its sandbox prerequisites)
 - `install_firecrawl` (default: `false`; optional private Firecrawl stack)
-- `install_windmill` (default: `false`; optional private Windmill stack)
 - `vps_backup_dir` (default: `/var/backups/agent-vps`)
 - `vps_backup_offbox_enabled` (default: `false`; opt-in rsync-over-SSH copy and checksum verification)
 - `vps_backup_offbox_target` (required when enabled; format `user@host:/path`)
@@ -319,16 +315,6 @@ Provision and harden a Hetzner Cloud VPS in a repeatable, safe-by-default workfl
   - `firecrawl_postgres_db` (must be `postgres` with upstream `nuq-postgres`)
   - `firecrawl_auto_generate_secrets` (default: `true`)
   - low-concurrency knobs: `firecrawl_num_workers_per_queue`, `firecrawl_crawl_concurrent_requests`, `firecrawl_max_concurrent_jobs`, `firecrawl_browser_pool_size`, CPU/memory limits, `firecrawl_block_media`, `firecrawl_logging_level`
-- Windmill knobs:
-  - `windmill_enable_service` (default: `false`; starts only after `/etc/windmill/.env` has real database credentials)
-  - `windmill_env_dir`, `windmill_env_file` (defaults: `/etc/windmill`, `/etc/windmill/.env`)
-  - `windmill_data_dir`, `windmill_compose_file` (defaults: `/var/lib/windmill`, `/etc/windmill/docker-compose.yml`)
-  - `windmill_bind_address` (default: `127.0.0.1`; may be a Tailscale `100.64.0.0/10` address)
-  - `windmill_host_port` (default: `8000`)
-  - `windmill_base_url` (default: `http://127.0.0.1:8000`; set to the Tailscale URL when binding to a Tailscale IP)
-  - `windmill_image`, `windmill_extra_image` (default pinned tag: `1.712.0`)
-  - `windmill_postgres_image` (default pinned tag: `postgres:16.6`)
-  - `windmill_auto_generate_secrets` (default: `true`)
 
 ## Inputs / knobs (Terraform)
 - `server_name`, `firewall_name`, `image`, `server_type`, `location`
@@ -431,19 +417,16 @@ Provision and harden a Hetzner Cloud VPS in a repeatable, safe-by-default workfl
   - connect with NoMachine over the VPS Tailscale IP/hostname on port `4000`
   - confirm no public GUI ports were added to UFW or the Hetzner firewall
 - Port exposure sanity:
-  - `sudo ss -ltnp | grep -E ':22 |:3002 |:8000 ' || true`
-  - expected: optional Firecrawl and Windmill ports are loopback-bound unless explicitly bound to a Tailscale IP; SSH is reachable only through allowed Tailscale/bootstrap sources.
+  - `sudo ss -ltnp | grep -E ':22 |:3002 ' || true`
+  - expected: the optional Firecrawl port is loopback-bound; SSH is reachable only through allowed Tailscale/bootstrap sources.
 - Firecrawl when enabled:
   - `curl -fsS http://127.0.0.1:3002`
   - `sudo docker compose --env-file /etc/firecrawl/firecrawl.env -f /opt/firecrawl/docker-compose.yml ps`
   - `curl -fsS -X POST http://127.0.0.1:3002/v1/scrape -H 'Content-Type: application/json' -d '{"url":"https://docs.firecrawl.dev","formats":["markdown"]}'`
-- Windmill when enabled:
-  - `curl -fsS http://127.0.0.1:8000`
-  - `sudo docker compose --env-file /etc/windmill/.env -f /etc/windmill/docker-compose.yml ps`
 - Backup and restore evidence:
   - `sudo agent-vps backup`
   - `sudo agent-vps backup-offbox` should report disabled until `vps_backup_offbox_enabled=true`; when enabled, it must upload and checksum-verify the archive. If the target is unavailable, it writes the retry-pending file and the next run retries that archive.
-  - `sudo tar -tzf /var/backups/agent-vps/latest.tar.gz | grep -E '^(etc/agent-vps|etc/firecrawl|etc/windmill|var/lib/windmill)' | head`
+  - `sudo tar -tzf /var/backups/agent-vps/latest.tar.gz | grep -E '^(etc/agent-vps|etc/firecrawl)' | head`
 - Terraform safety before infra changes:
   - run `hctf -chdir=templates/infra plan -input=false`
   - stop before apply if the plan replaces `hcloud_server.vps`
@@ -464,24 +447,6 @@ Provision and harden a Hetzner Cloud VPS in a repeatable, safe-by-default workfl
 - Redis, RabbitMQ, and Postgres remain on the private `firecrawl_backend` network; only the API port is published, on loopback.
 - Env secrets are generated only when missing/placeholder and `firecrawl_auto_generate_secrets=true`.
 - If API restarts with `relation "nuq.queue_*" does not exist`, ensure `POSTGRES_DB=postgres`; if this is a fresh failed init, recreate only Firecrawl volumes with `docker compose --env-file /etc/firecrawl/firecrawl.env -f /opt/firecrawl/docker-compose.yml down -v`, then `up -d`.
-
-## Windmill private stack
-- Use official Windmill self-host docs and pricing as source of truth:
-  - `https://www.windmill.dev/docs/advanced/self_host`
-  - `https://www.windmill.dev/pricing`
-- The free self-host edition is suitable for private experiments, with unlimited executions and documented limits such as workspace/user caps.
-- Keep Windmill private in this skill:
-  - default host endpoint: `http://127.0.0.1:8000`
-  - laptop tunnel: `ssh -N -L 8000:127.0.0.1:8000 agent-vps`
-  - optional Tailscale bind only to a `100.64.0.0/10` address
-- Runtime layout:
-  - compose: `/etc/windmill/docker-compose.yml`
-  - env: `/etc/windmill/.env` (secret-bearing; never commit)
-  - data: `/var/lib/windmill`
-- The Windmill role is gated by `install_windmill`; service state is gated by `windmill_enable_service`.
-- The role creates `/etc/windmill/.env` only if missing, auto-generates a Postgres password when `windmill_auto_generate_secrets=true`, and refuses startup while placeholders remain.
-- The default stack includes Postgres, Windmill server, one default worker, one native worker, and Windmill Extra. It does not expose Caddy or SMTP publicly.
-- Public routes/webhooks require a separate reviewed change: DNS, reverse proxy with TLS, public `80/443` firewall rules, `windmill_base_url`, and explicit access control decisions.
 
 ## Codex CLI Firecrawl access
 - Keep Firecrawl hosted as its own private service stack under `/opt/firecrawl` and `/etc/firecrawl`; do not move it under `/home/<admin_user>` just so Codex CLI can use it.

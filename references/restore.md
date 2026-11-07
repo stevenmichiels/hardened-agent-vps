@@ -8,7 +8,6 @@ Backups created by `agent-vps backup` include, when present:
 
 - `/etc/agent-vps`
 - `/etc/firecrawl` when Firecrawl has been installed
-- `/etc/windmill` and `/var/lib/windmill` when Windmill has been installed
 
 `/etc/agent-vps` contains the operator notification settings, including the optional Telegram alert token. Keep backups private and encrypted when copied off the VPS.
 
@@ -18,7 +17,7 @@ Backups created by `agent-vps backup` include, when present:
 
 1. Recreate infrastructure with Terraform.
 2. Update `templates/ansible/inventory.ini` with the bootstrap IP.
-3. Run Ansible with `firecrawl_enable_service=false` and `windmill_enable_service=false`.
+3. Run Ansible with `firecrawl_enable_service=false`.
 4. Copy the backup archive to the VPS.
 5. Stop runtime containers and restore as root:
 
@@ -34,7 +33,7 @@ sudo chmod 0600 /etc/firecrawl/firecrawl.env 2>/dev/null || true
 ```
 
 6. If restoring Firecrawl Docker volumes from a separate cold backup, restore them before starting Firecrawl.
-7. Start Docker and rerun Ansible with the intended Firecrawl and Windmill settings.
+7. Start Docker and rerun Ansible with the intended Firecrawl settings.
 8. Validate:
 
 ```sh

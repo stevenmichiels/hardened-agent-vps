@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Remove the optional Windmill profile: its Ansible role, the `install_windmill`
+  and `windmill_*` variables, its status checks, and its backup paths. Its
+  worker ran privileged by default. Hosts with Windmill keep `/etc/windmill`,
+  `/var/lib/windmill`, and the containers; stop and remove them by hand.
+
 ## v3.0.1 - 2026-11-07
 
 v3.0.1 keeps fail2ban from locking the operator out of SSH, and records three

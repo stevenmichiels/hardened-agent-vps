@@ -24,14 +24,6 @@ if [ -d /etc/firecrawl ]; then
   backup_paths+=(etc/firecrawl)
 fi
 
-if [ -d /etc/windmill ]; then
-  backup_paths+=(etc/windmill)
-fi
-
-if [ -d /var/lib/windmill ]; then
-  backup_paths+=(var/lib/windmill)
-fi
-
 cd /
 if [ -z "${backup_paths[*]:-}" ]; then
   printf 'backup_failed=no_paths_found\n' >&2

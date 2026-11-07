@@ -66,7 +66,7 @@ service boundaries.
   alerts, and Docker cleanup.
 - Backups with checksum-verified off-box copies and a documented recovery path.
 - Optional Claude Code CLI and Codex CLI installs.
-- Optional private Firecrawl, Windmill, and remote desktop profiles.
+- Optional private Firecrawl and remote desktop profiles.
 - Source-controlled Claude skill templates.
 
 ## Quick Start
@@ -171,8 +171,6 @@ chain notes, and pre-sharing checks.
 
 - **Firecrawl and MCP integrations:** private host/container endpoints and
   user-local Codex configuration. [Guide](docs/integrations.md)
-- **Windmill:** private workflow automation backed by Postgres.
-  [Role guide](templates/ansible/roles/windmill/README.md)
 - **NoMachine/XFCE:** opt-in GUI access restricted to Tailscale.
   [Guide](docs/remote-desktop.md)
 - **Claude/Codex review:** Claude Code implements while Codex reviews without

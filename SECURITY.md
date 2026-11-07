@@ -27,8 +27,8 @@ operator who intentionally exposes a private service.
   behind Tailscale in both UFW and the Hetzner firewall.
 - Validate non-root access before disabling root SSH or changing firewall rules.
 - Keep password authentication disabled.
-- Bind Firecrawl, Windmill, and remote desktop to loopback or the Tailscale
-  network unless a separate public-ingress design is reviewed.
+- Bind Firecrawl and remote desktop to loopback or the Tailscale network
+  unless a separate public-ingress design is reviewed.
 - Do not apply Terraform when a plan unexpectedly replaces the VPS.
 - Do not let coding agents write directly to production runtime directories,
   env files, or databases.

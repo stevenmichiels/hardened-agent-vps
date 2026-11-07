@@ -66,7 +66,6 @@
         mode: "0755"
     install_vps_ops: true
     install_firecrawl: false
-    install_windmill: false
 
     vps_ops_env_dir: "/etc/agent-vps"
     vps_ops_env_file: "/etc/agent-vps/.env"
@@ -115,15 +114,6 @@
     firecrawl_block_media: true
     firecrawl_logging_level: "INFO"
 
-    # Optional private Windmill stack.
-    windmill_enable_service: false
-    windmill_image: "ghcr.io/windmill-labs/windmill:1.712.0"
-    windmill_extra_image: "ghcr.io/windmill-labs/windmill-extra:1.712.0"
-    windmill_postgres_image: "postgres:16.6"
-    windmill_bind_address: "127.0.0.1"
-    windmill_host_port: 8000
-    windmill_base_url: "http://127.0.0.1:8000"
-
     auto_reboot: true
     auto_reboot_time: "03:30"
   pre_tasks:
@@ -148,6 +138,3 @@
       tags: vps_ops
     - role: firecrawl
       when: install_firecrawl | bool
-    - role: windmill
-      when: install_windmill | bool
-      tags: windmill
