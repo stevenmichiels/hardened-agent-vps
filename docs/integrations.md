@@ -97,5 +97,5 @@ See [Remote Desktop](remote-desktop.md).
 
 ## Agent Review Helpers
 
-The workbench can install reciprocal, read-only Codex/Claude review helpers.
+The workbench can install a read-only Codex review helper for Claude Code work.
 See [Agent Workflows](agent-workflows.md).

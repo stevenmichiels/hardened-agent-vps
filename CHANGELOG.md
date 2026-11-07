@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Make Claude Code the implementer and Codex the reviewer. Remove the
+  `claude-review` Codex skill template and the `codex-claude-review` helper,
+  with the `install_claude_review_helper`, `claude_review_helper_path`,
+  `codex_skills_dir`, and `codex_claude_review_skill_src_dir` variables. The
+  `codex-review` Claude skill and `claude-codex-review` stay.
+- Hosts provisioned earlier keep `/usr/local/bin/codex-claude-review` and
+  `~/.codex/skills/claude-review`; remove them by hand.
+
 ## v2.0.0 - 2026-11-07
 
 v2.0.0 renames the project to `hardened-agent-vps` and narrows it to a hardened

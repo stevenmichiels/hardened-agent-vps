@@ -37,7 +37,6 @@ Provision and harden a Hetzner Cloud VPS in a repeatable, safe-by-default workfl
   - `templates/infra/terraform.tfvars.example` -> `templates/infra/terraform.tfvars`
 - `templates/ansible/site.yml` automatically loads `templates/ansible/vars/local.yml` from the controller when present.
 - Do not commit local inventory, local Ansible vars, Terraform tfvars/state/plans, Ansible logs, backup archives, optional service `.env` files, OAuth profiles, pairing state, or SSH keys.
-- Source-controlled Codex skill templates for VPS users live under `templates/codex-skills/` and are safe to copy because this tree must not contain secrets.
 - Source-controlled Claude skill templates for VPS users live under `templates/claude-skills/` and are safe to copy because this tree must not contain secrets.
 
 ## VPS zoning model
@@ -54,32 +53,26 @@ Provision and harden a Hetzner Cloud VPS in a repeatable, safe-by-default workfl
 - The Ansible baseline creates the parent zone directories by default: `/srv/apps`, `/home/<admin_user>/repos`, `/home/<admin_user>/agent-workspaces`, and `/var/backups`. The Firecrawl role manages `/opt/firecrawl` and `/etc/firecrawl` only when Firecrawl is enabled; the Windmill role manages `/var/lib/windmill` and `/etc/windmill` only when Windmill is enabled. Create concrete app/repo directories only when the real app or repo name is known.
 - Prefer separate Unix users for persistent services when co-hosting multiple agents: an admin SSH user for operators, and service users such as `claude-agent` and `codex-agent` when their permissions or runtime state need isolation.
 - Treat Claude Code CLI and Codex CLI as interactive coding tools by default: run them in SSH/tmux/mosh sessions against Git repos or disposable workspaces, with separate auth/config directories when possible.
-- Use the dual-agent review pattern when helpful: one agent develops, the other produces a read-only Markdown review. Do not let both agents edit the same worktree at the same time.
+- Use the dual-agent review pattern when helpful: Claude Code develops, Codex produces a read-only Markdown review. Do not let both agents edit the same worktree at the same time.
 - AI agents must not write directly to `/srv/apps/production-*`, `/var/www`, production `.env` files, or production databases. Use Git, reviewed diffs, CI/deploy scripts, Ansible, or a staging promotion step.
 - Give agent services dev/staging credentials by default. Use production credentials only after an explicit decision, with the narrowest scope possible and no shared `.env` across optional app profiles, Claude Code CLI, Codex CLI, and app runtimes.
 - For a multi-agent VPS with Docker builds, browser automation, crawling, or databases, prefer at least 4-8 GB RAM and choose 8 GB when budget allows; enable swap and validate memory pressure before adding another service.
 
 ## Dual-agent review workflow
-- Preferred flow: Codex implements, Claude Code reviews; or Claude Code implements, Codex reviews. Only one agent edits the worktree.
-- The base role installs the `claude-review` Codex skill into `codex_skills_dir` and exposes `codex-claude-review` on the system PATH by default. It asks Claude Code to review the current `git diff HEAD` plus untracked files, includes recent `.codex/plan/*.md` context when present, and writes a Markdown report under `.codex/reviews/` unless `-o` is provided.
-- The base role also installs the `codex-review` Claude skill into `claude_skills_dir` and exposes `claude-codex-review` on the system PATH by default. It asks Codex CLI for a read-only review through `codex review`, supports `--uncommitted`, `--commit`, and `--base`, includes recent `.codex/plan/*.md` context when present, and writes a Markdown report under `.claude/reviews/` unless `-o` is provided.
+- Default flow: Claude Code implements, Codex reviews. Only Claude Code edits the worktree.
+- The base role installs the `codex-review` Claude skill into `claude_skills_dir` and exposes `claude-codex-review` on the system PATH by default. It asks Codex CLI for a read-only review through `codex review`, not `codex exec`, supports `--uncommitted`, `--commit`, and `--base`, includes recent `.codex/plan/*.md` context when present, and writes a Markdown report under `.claude/reviews/` unless `-o` is provided. It does not commit, stage, or edit source files.
 - Example:
   ```bash
-  codex-claude-review "Review the current diff as a strict senior engineer. Focus on bugs, tests, and simplification."
   claude-codex-review "Review the current diff as a strict senior engineer. Focus on bugs, tests, and simplification."
+  claude-codex-review --base main "Review this branch against main."
   ```
 - To choose a stable output path:
   ```bash
-  codex-claude-review -o claude-review.md "Check whether this implementation is overengineered."
   claude-codex-review -o codex-review.md "Check whether this implementation is overengineered."
   ```
-- The helper runs Claude in `--print` mode with `--tools ""`, `--permission-mode plan`, and `--no-session-persistence`. It does not commit, stage, or edit source files.
-- The reverse helper runs Codex through `codex review`, not `codex exec`. It does not commit, stage, or edit source files.
-- By default it refuses likely secret-bearing paths and diffs larger than `CLAUDE_REVIEW_MAX_DIFF_BYTES` (default `200000`). Override only after manual review with `CLAUDE_REVIEW_ALLOW_SENSITIVE_DIFF=1` or `CLAUDE_REVIEW_ALLOW_LARGE_DIFF=1`.
-- The reverse helper uses matching `CODEX_REVIEW_*` environment variables for size, sensitivity, and plan-context overrides.
-- Plan context is included by default from the latest `.codex/plan/*.md` files and capped by `CLAUDE_REVIEW_MAX_PLAN_BYTES` (default `60000`). Set `CLAUDE_REVIEW_INCLUDE_PLAN=0` when the plan is irrelevant or sensitive.
+- By default it refuses likely secret-bearing paths and diffs larger than `CODEX_REVIEW_MAX_DIFF_BYTES` (default `200000`). Override only after manual review with `CODEX_REVIEW_ALLOW_SENSITIVE_DIFF=1` or `CODEX_REVIEW_ALLOW_LARGE_DIFF=1`.
+- Plan context is included by default from the latest `.codex/plan/*.md` files and capped by `CODEX_REVIEW_MAX_PLAN_BYTES` (default `60000`). Set `CODEX_REVIEW_INCLUDE_PLAN=0` when the plan is irrelevant or sensitive.
 - Do not let the reviewer commit its own review. If a review report should be versioned, let the primary agent or operator inspect it first, then commit only the Markdown report in a separate commit.
-- `CLAUDE_REVIEW_MAX_BUDGET_USD` is optional. Leave it unset for normal Claude Code subscription usage; set it only when you deliberately want a print-mode spend guard.
 
 ## Controller machine discipline
 - When work continues from a different controller machine, rediscover local state instead of assuming previous inventory, SSH keys, shell aliases, Terraform env vars, or `known_hosts` entries exist.
@@ -295,10 +288,6 @@ Provision and harden a Hetzner Cloud VPS in a repeatable, safe-by-default workfl
 - `nomachine_allow_tailscale` (default: `true`; allows TCP/UDP `4000` from Tailscale CIDR)
 - `nomachine_disable_upnp` (default: `true`)
 - `nomachine_disable_firewall_autoconfig` (default: `true`)
-- `install_claude_review_helper` (default: `true`; installs `codex-claude-review`)
-- `claude_review_helper_path` (default: `/usr/local/bin/codex-claude-review`)
-- `codex_skills_dir` (default: `/home/<admin_user>/.codex/skills`)
-- `codex_claude_review_skill_src_dir` (default: `templates/codex-skills/claude-review`)
 - `install_codex_review_helper` (default: `true`; installs `claude-codex-review`)
 - `codex_review_helper_path` (default: `/usr/local/bin/claude-codex-review`)
 - `claude_skills_dir` (default: `/home/<admin_user>/.claude/skills`)

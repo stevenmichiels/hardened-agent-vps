@@ -42,10 +42,6 @@
     install_claude_code: false
     refresh_claude_code: false
     install_codex_cli: false
-    install_claude_review_helper: true
-    claude_review_helper_path: "/usr/local/bin/codex-claude-review"
-    codex_skills_dir: "/home/{{ admin_user }}/.codex/skills"
-    codex_claude_review_skill_src_dir: "{{ playbook_dir }}/../codex-skills/claude-review"
     install_codex_review_helper: true
     codex_review_helper_path: "/usr/local/bin/claude-codex-review"
     claude_skills_dir: "/home/{{ admin_user }}/.claude/skills"

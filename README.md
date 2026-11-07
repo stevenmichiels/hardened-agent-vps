@@ -67,7 +67,7 @@ service boundaries.
 - Backups with checksum-verified off-box copies and a documented recovery path.
 - Optional Claude Code CLI and Codex CLI installs.
 - Optional private Firecrawl, Windmill, and remote desktop profiles.
-- Source-controlled Codex and Claude skill templates.
+- Source-controlled Claude skill templates.
 
 ## Quick Start
 
@@ -175,8 +175,8 @@ chain notes, and pre-sharing checks.
   [Role guide](templates/ansible/roles/windmill/README.md)
 - **NoMachine/XFCE:** opt-in GUI access restricted to Tailscale.
   [Guide](docs/remote-desktop.md)
-- **Codex/Claude cross-review:** one agent implements while the other reviews
-  without edit tools. [Guide](docs/agent-workflows.md)
+- **Claude/Codex review:** Claude Code implements while Codex reviews without
+  edit tools. [Guide](docs/agent-workflows.md)
 
 ## Repository Structure
 
@@ -190,7 +190,6 @@ chain notes, and pre-sharing checks.
 `-- templates/
     |-- infra/                Terraform server and firewall templates
     |-- ansible/              playbook, roles, and example local config
-    |-- codex-skills/         Codex review skill templates
     `-- claude-skills/        Claude review skill templates
 ```
 
