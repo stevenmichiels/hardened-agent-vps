@@ -27,7 +27,8 @@ Provision and harden a Hetzner Cloud VPS in a repeatable, safe-by-default workfl
    - `templates/ansible/site.yml`
    - relevant role files under `templates/ansible/roles/*`
 3) Confirm whether change is Terraform, Ansible, or both.
-4) Execute the smallest safe change first, then validate with concrete health checks.
+4) Before an Ansible run, check `git status`: Ansible copies files from the working tree, so a half-finished change in another session can fail a run midway.
+5) Execute the smallest safe change first, then validate with concrete health checks.
 
 ## Local config and sharing rule
 - The tracked skill must stay generic and shareable. Keep machine/account-specific values in ignored local files.
@@ -360,9 +361,11 @@ Provision and harden a Hetzner Cloud VPS in a repeatable, safe-by-default workfl
    - inventory user to the admin user
    - `disable_root_login=true`
    - rerun `ansible-playbook -i inventory.ini site.yml`
+   - prove root login is off as the admin user with `sudo sshd -T | grep -i permitrootlogin`, expecting `permitrootlogin no`; never prove it with a failed root login, because fail2ban bans the bootstrap `/32` after 5 failures in 10 minutes, and that address is the only allowed SSH source
 6) Join Tailscale on the VPS:
    - run `sudo tailscale up --hostname=agent-vps`
    - approve the auth link
+   - disable key expiry for the VPS in the Tailscale admin console; once SSH is Tailscale-only, an expired node key locks the operator out
    - run `sudo tailscale set --ssh=false` unless Tailscale SSH was explicitly chosen
    - validate SSH through the Tailscale IP before closing bootstrap SSH
    - for operator checks from a tailnet-connected controller, prefer `ssh <admin_user>@<tailscale-ip-or-hostname> 'sudo agent-vps status'`
