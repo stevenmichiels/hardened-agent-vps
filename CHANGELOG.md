@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+## v3.0.1 - 2026-11-07
+
+v3.0.1 keeps fail2ban from locking the operator out of SSH, and records three
+bootstrap lessons.
+
+- fail2ban sets `ignoreip` to loopback, `tailscale_ssh_source_cidr`, and
+  `bootstrap_public_ssh_cidr` while it is set. SSH is open only to those
+  sources, so banning them protected nothing behind key-only login and could
+  lock the operator out for an hour. Other sources are still banned.
+- `SKILL.md` and `LEARNINGS.md`: check `git status` before an Ansible run, prove
+  that root login is off with `sudo sshd -T` instead of a failed root login,
+  and disable Tailscale key expiry for the VPS before closing public SSH.
+- Existing hosts get the `ignoreip` line at the next Ansible run.
+
+Validation:
+
+- `ansible-playbook -i inventory.ini.example site.yml --syntax-check`
+- The `ignoreip` value rendered with and without `bootstrap_public_ssh_cidr`
+- `git diff --check`
+
 ## v3.0.0 - 2026-11-07
 
 v3.0.0 makes Claude Code the implementer and Codex the reviewer. The
