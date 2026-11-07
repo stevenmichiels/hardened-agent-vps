@@ -137,6 +137,9 @@
       bantime  = 1h
       findtime = 10m
       maxretry = 5
+      # SSH is open only to the operator: the bootstrap /32, then the tailnet.
+      # Banning those protects nothing behind key-only login, and locks the operator out.
+      ignoreip = 127.0.0.1/8 ::1 {{ tailscale_ssh_source_cidr }}{{ (' ' ~ bootstrap_public_ssh_cidr) if (bootstrap_public_ssh_cidr | default('') | length > 0) else '' }}
 
       [sshd]
       enabled = {{ 'true' if (enable_fail2ban_sshd | bool) else 'false' }}
