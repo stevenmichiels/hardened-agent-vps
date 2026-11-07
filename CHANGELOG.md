@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## v4.0.0 - 2026-11-07
+
+v4.0.0 follows a security review: coding agents run as an unprivileged user,
+SSH hardening is checked against the effective configuration, Tailscale comes
+from its signed apt repository, and the unused Windmill profile is gone. Agent
+workspaces and the Claude skill move to the agent user's home, so existing
+hosts need the manual steps below.
+
 - Remove the optional Windmill profile: its Ansible role, the `install_windmill`
   and `windmill_*` variables, its status checks, and its backup paths. Its
   worker ran privileged by default. Hosts with Windmill keep `/etc/windmill`,
@@ -21,6 +29,20 @@
 - Install Tailscale from its signed apt repository instead of piping
   `install.sh` into a root shell. The keyring and source line match what
   `install.sh` writes, so existing hosts see no change.
+
+Validation:
+
+- `ansible-playbook -i inventory.ini.example site.yml --syntax-check` after
+  each change
+- `bash -n` on the edited `agent-vps` status and backup templates with Jinja
+  placeholders replaced
+- The SSH drop-in passed a local `sshd -t`, and `sshd -T` printed the lines the
+  play asserts
+- The Tailscale source line matches the published
+  `noble.tailscale-keyring.list`
+- `git diff --check`
+- Scan for leftover Windmill and admin-home agent paths outside the changelog
+  history
 
 ## v3.0.1 - 2026-11-07
 
