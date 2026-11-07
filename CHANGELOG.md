@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## v2.0.0 - 2026-11-07
+
+v2.0.0 renames the project to `hardened-agent-vps` and narrows it to a hardened
+VPS workbench for coding agents such as Claude Code and Codex. It removes the
+optional Hermes Agent, n8n, Cloudflare Tunnel, and OpenClaw pieces and renames
+the operator layer, so ignored local vars and hosts from v1.x need changes.
+
 - Rename the repository and README title to `hardened-agent-vps`. GitHub
   redirects the old `dual-agent-vps` URLs.
 - Remove the optional Hermes Agent profile: its Ansible role, runtime skill
@@ -16,6 +23,18 @@
   is published, on loopback.
 - Hosts deployed from v1.x keep the old `hermes-vps` units and paths. Rebuild
   them rather than upgrading in place.
+
+Validation:
+
+- `ansible-playbook -i inventory.ini.example site.yml --syntax-check`
+- `terraform -chdir=templates/infra fmt -check -diff`
+- `terraform -chdir=templates/infra init -backend=false -input=false` and
+  `terraform -chdir=templates/infra validate` in CI
+- `bash -n` on the operator scripts with Jinja placeholders replaced
+- Local Markdown link validation
+- `git diff --check`
+- Scan for leftover Hermes, n8n, cloudflared, and OpenClaw references outside
+  the changelog history
 
 ## v1.0.2 - 2026-09-18
 
