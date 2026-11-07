@@ -2,13 +2,13 @@
 set -euo pipefail
 umask 077
 
-BACKUP_DIR="{{ hermes_backup_dir }}"
-RETENTION_DAYS="{{ hermes_backup_retention_days }}"
-OFFBOX_ENABLED="{{ (hermes_backup_offbox_enabled | bool) | ternary('true', 'false') }}"
-OFFBOX_STATE_FILE="{{ hermes_backup_offbox_state_file }}"
-OFFBOX_MAX_AGE_HOURS="{{ hermes_backup_offbox_max_age_hours }}"
+BACKUP_DIR="{{ vps_backup_dir }}"
+RETENTION_DAYS="{{ vps_backup_retention_days }}"
+OFFBOX_ENABLED="{{ (vps_backup_offbox_enabled | bool) | ternary('true', 'false') }}"
+OFFBOX_STATE_FILE="{{ vps_backup_offbox_state_file }}"
+OFFBOX_MAX_AGE_HOURS="{{ vps_backup_offbox_max_age_hours }}"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
-ARCHIVE="${BACKUP_DIR}/hermes-vps-${STAMP}.tar.gz"
+ARCHIVE="${BACKUP_DIR}/agent-vps-${STAMP}.tar.gz"
 TMP_ARCHIVE="${ARCHIVE}.tmp"
 
 mkdir -p "$BACKUP_DIR"
@@ -16,28 +16,12 @@ chmod 0700 "$BACKUP_DIR"
 
 backup_paths=()
 
-if [ -d /etc/hermes-vps ]; then
-  backup_paths+=(etc/hermes-vps)
-fi
-
-if [ -d /etc/hermes ]; then
-  backup_paths+=(etc/hermes)
-fi
-
-if [ -d /var/lib/hermes ]; then
-  backup_paths+=(var/lib/hermes)
+if [ -d /etc/agent-vps ]; then
+  backup_paths+=(etc/agent-vps)
 fi
 
 if [ -d /etc/firecrawl ]; then
   backup_paths+=(etc/firecrawl)
-fi
-
-if [ -d /etc/n8n ]; then
-  backup_paths+=(etc/n8n)
-fi
-
-if [ -d /var/lib/n8n ]; then
-  backup_paths+=(var/lib/n8n)
 fi
 
 if [ -d /etc/windmill ]; then
@@ -65,7 +49,7 @@ mv "$TMP_ARCHIVE" "$ARCHIVE"
 ln -sfn "$(basename "$ARCHIVE")" "${BACKUP_DIR}/latest.tar.gz"
 
 if [ "$OFFBOX_ENABLED" = "true" ]; then
-  if ! /usr/local/sbin/hermes-vps-backup-offbox "$ARCHIVE"; then
+  if ! /usr/local/sbin/agent-vps-backup-offbox "$ARCHIVE"; then
     printf 'backup_offbox_retry_pending=%s\n' "$ARCHIVE"
   fi
 fi
@@ -79,7 +63,7 @@ if [ "$OFFBOX_ENABLED" = "true" ] && [ -f "$OFFBOX_STATE_FILE" ]; then
 fi
 
 if [ "$offbox_fresh" = "true" ]; then
-  find "$BACKUP_DIR" -maxdepth 1 -type f -name 'hermes-vps-*.tar.gz' -mtime +"$RETENTION_DAYS" -print -delete |
+  find "$BACKUP_DIR" -maxdepth 1 -type f -name 'agent-vps-*.tar.gz' -mtime +"$RETENTION_DAYS" -print -delete |
     sed 's/^/backup_pruned=/'
   printf 'backup_retention_prune=guarded_by_fresh_offbox_copy\n'
 else

@@ -1,0 +1,189 @@
+#!/usr/bin/env bash
+set -u
+
+BACKUP_DIR="{{ vps_backup_dir }}"
+BACKUP_OFFBOX_ENABLED="{{ (vps_backup_offbox_enabled | bool) | ternary('true', 'false') }}"
+BACKUP_OFFBOX_STATE_FILE="{{ vps_backup_offbox_state_file }}"
+BACKUP_OFFBOX_PENDING_FILE="{{ vps_backup_offbox_pending_file }}"
+BACKUP_OFFBOX_MAX_AGE_HOURS="{{ vps_backup_offbox_max_age_hours }}"
+INSTALL_FIRECRAWL="{{ (install_firecrawl | bool) | ternary('true', 'false') }}"
+FIRECRAWL_ENABLE_SERVICE="{{ (firecrawl_enable_service | bool) | ternary('true', 'false') }}"
+FIRECRAWL_COMPOSE_FILE="{{ firecrawl_compose_file }}"
+FIRECRAWL_ENV_FILE="{{ firecrawl_env_file }}"
+FIRECRAWL_API_PORT="{{ firecrawl_api_port }}"
+INSTALL_WINDMILL="{{ (install_windmill | bool) | ternary('true', 'false') }}"
+WINDMILL_ENABLE_SERVICE="{{ (windmill_enable_service | bool) | ternary('true', 'false') }}"
+WINDMILL_COMPOSE_FILE="{{ windmill_compose_file | default('/etc/windmill/docker-compose.yml') }}"
+WINDMILL_ENV_FILE="{{ windmill_env_file | default('/etc/windmill/.env') }}"
+WINDMILL_BIND_ADDRESS="{{ windmill_bind_address | default('127.0.0.1') }}"
+WINDMILL_HOST_PORT="{{ windmill_host_port | default(8000) }}"
+
+failures=0
+
+ok() { printf 'OK %s\n' "$*"; }
+warn() { printf 'WARN %s\n' "$*"; }
+fail() { printf 'FAIL %s\n' "$*"; failures=$((failures + 1)); }
+
+if tailscale ip -4 >/tmp/agent-vps-tailscale-ip 2>/dev/null; then
+  ts_ip="$(head -n1 /tmp/agent-vps-tailscale-ip)"
+  case "$ts_ip" in
+    100.*) ok "tailscale_ip=$ts_ip" ;;
+    *) fail "tailscale_ip_unexpected=$ts_ip" ;;
+  esac
+else
+  fail "tailscale_not_ready"
+fi
+
+if [ "$INSTALL_FIRECRAWL" = "true" ]; then
+  if [ -f "$FIRECRAWL_COMPOSE_FILE" ]; then
+    ok "firecrawl_compose_file_present=$FIRECRAWL_COMPOSE_FILE"
+  else
+    fail "firecrawl_compose_file_missing=$FIRECRAWL_COMPOSE_FILE"
+  fi
+
+  if [ -f "$FIRECRAWL_ENV_FILE" ]; then
+    ok "firecrawl_env_file_present=$FIRECRAWL_ENV_FILE"
+  else
+    fail "firecrawl_env_file_missing=$FIRECRAWL_ENV_FILE"
+  fi
+
+  if [ "$FIRECRAWL_ENABLE_SERVICE" = "true" ]; then
+    if curl -fsS "http://127.0.0.1:${FIRECRAWL_API_PORT}" >/tmp/agent-vps-firecrawl-root.txt 2>/dev/null; then
+      ok "firecrawl_api_reachable"
+    else
+      fail "firecrawl_api_unreachable"
+    fi
+
+    bad_firecrawl_ports="$(ss -ltn | awk -v fp=":${FIRECRAWL_API_PORT}" '$4 ~ fp "$" && $4 !~ /^127[.]0[.]0[.]1:/ { print $4 }')"
+    if [ -z "$bad_firecrawl_ports" ]; then
+      ok "firecrawl_port_loopback_only"
+    else
+      fail "firecrawl_port_exposed=$bad_firecrawl_ports"
+    fi
+
+    for service in api playwright-service redis rabbitmq nuq-postgres; do
+      if docker compose --env-file "$FIRECRAWL_ENV_FILE" -f "$FIRECRAWL_COMPOSE_FILE" ps --services --filter status=running 2>/dev/null | grep -qx "$service"; then
+        ok "firecrawl_${service}_running"
+      else
+        fail "firecrawl_${service}_not_running"
+      fi
+    done
+  else
+    warn "firecrawl_service_disabled"
+  fi
+fi
+
+if [ "$INSTALL_WINDMILL" = "true" ]; then
+  if [ -f "$WINDMILL_COMPOSE_FILE" ]; then
+    ok "windmill_compose_file_present=$WINDMILL_COMPOSE_FILE"
+  else
+    fail "windmill_compose_file_missing=$WINDMILL_COMPOSE_FILE"
+  fi
+
+  if [ -f "$WINDMILL_ENV_FILE" ]; then
+    ok "windmill_env_file_present=$WINDMILL_ENV_FILE"
+  else
+    fail "windmill_env_file_missing=$WINDMILL_ENV_FILE"
+  fi
+
+  if [ "$WINDMILL_ENABLE_SERVICE" = "true" ]; then
+    if curl -fsS "http://${WINDMILL_BIND_ADDRESS}:${WINDMILL_HOST_PORT}" >/tmp/agent-vps-windmill-root.html 2>/dev/null; then
+      ok "windmill_ui_reachable"
+    else
+      fail "windmill_ui_unreachable"
+    fi
+
+    bad_windmill_ports="$(ss -ltn | awk -v wp=":${WINDMILL_HOST_PORT}" '$4 ~ wp "$" && $4 !~ /^127[.]0[.]0[.]1:/ && $4 !~ /^100[.]/ { print $4 }')"
+    if [ -z "$bad_windmill_ports" ]; then
+      ok "windmill_port_private"
+    else
+      fail "windmill_port_exposed=$bad_windmill_ports"
+    fi
+
+    for service in postgres windmill-server windmill-worker windmill-worker-native windmill-extra; do
+      if docker compose --env-file "$WINDMILL_ENV_FILE" -f "$WINDMILL_COMPOSE_FILE" ps --services --filter status=running 2>/dev/null | grep -qx "$service"; then
+        ok "windmill_${service}_running"
+      else
+        fail "windmill_${service}_not_running"
+      fi
+    done
+  else
+    warn "windmill_service_disabled"
+  fi
+fi
+
+if [ -e "$BACKUP_DIR/latest.tar.gz" ]; then
+  latest_age="$(( ($(date +%s) - $(stat -c %Y "$BACKUP_DIR/latest.tar.gz")) / 3600 ))"
+  if [ "$latest_age" -le 36 ]; then
+    ok "backup_latest_age_hours=$latest_age"
+  else
+    fail "backup_latest_too_old_hours=$latest_age"
+  fi
+else
+  fail "backup_latest_missing"
+fi
+
+offbox_fresh=false
+if [ "$BACKUP_OFFBOX_ENABLED" = "true" ]; then
+  if [ -f "$BACKUP_OFFBOX_PENDING_FILE" ]; then
+    warn "backup_offbox_retry_pending=$BACKUP_OFFBOX_PENDING_FILE"
+  fi
+  if [ -f "$BACKUP_OFFBOX_STATE_FILE" ]; then
+    offbox_age="$(( ($(date +%s) - $(stat -c %Y "$BACKUP_OFFBOX_STATE_FILE")) / 3600 ))"
+    if [ "$offbox_age" -le "$BACKUP_OFFBOX_MAX_AGE_HOURS" ]; then
+      ok "backup_offbox_last_ok_age_hours=$offbox_age"
+      offbox_fresh=true
+    else
+      fail "backup_offbox_too_old_hours=$offbox_age"
+    fi
+  else
+    fail "backup_offbox_state_missing=$BACKUP_OFFBOX_STATE_FILE"
+  fi
+else
+  warn "backup_offbox_disabled"
+fi
+
+if [ "$offbox_fresh" = "true" ]; then
+  ok "backup_retention_prune_guarded_by_fresh_offbox_copy"
+else
+  warn "backup_retention_prune_disabled_until_offbox_copy"
+fi
+
+root_use="$(df -P / | awk 'NR==2 { gsub("%","",$5); print $5 }')"
+if [ "${root_use:-100}" -lt 85 ]; then
+  ok "disk_root_used_percent=$root_use"
+else
+  fail "disk_root_used_percent=$root_use"
+fi
+
+if [ -f /etc/docker/daemon.json ] && jq -e '."log-driver" == "json-file" and ."log-opts"."max-size" and ."log-opts"."max-file"' /etc/docker/daemon.json >/dev/null 2>&1; then
+  ok "docker_log_limits_configured"
+else
+  fail "docker_log_limits_missing"
+fi
+
+if systemctl is-enabled --quiet agent-vps-backup.timer; then
+  ok "backup_timer_enabled"
+else
+  fail "backup_timer_not_enabled"
+fi
+
+if systemctl is-enabled --quiet agent-vps-docker-cleanup.timer; then
+  ok "docker_cleanup_timer_enabled"
+else
+  fail "docker_cleanup_timer_not_enabled"
+fi
+
+if systemctl is-enabled --quiet agent-vps-healthcheck.timer; then
+  ok "healthcheck_timer_enabled"
+else
+  fail "healthcheck_timer_not_enabled"
+fi
+
+if [ "$failures" -eq 0 ]; then
+  ok "status=healthy"
+else
+  fail "status=unhealthy failures=$failures"
+fi
+
+exit "$failures"

@@ -7,7 +7,7 @@ admin_authorized_keys:
 
 # Managed parent directories for the VPS zoning model:
 # /srv/apps, /home/<admin_user>/repos, /home/<admin_user>/agent-workspaces,
-# /opt/openclaw, /opt/hermes, and /var/backups.
+# and /var/backups.
 vps_zone_dirs_enabled: true
 
 # First public bootstrap must use your current public IP /32.
@@ -18,20 +18,7 @@ tailscale_ssh_source_cidr: "100.64.0.0/10"
 # Keep the VPS operator layer installed even when optional apps are disabled.
 install_vps_ops: true
 # Optional Telegram health alerts can be configured on the VPS in
-# /etc/hermes-vps/.env after apply.
-
-# Optional agent gateway app. The service starts only after
-# /var/lib/hermes/.env is configured.
-install_hermes: false
-hermes_enable_service: false
-hermes_require_telegram: true
-hermes_require_allowed_users: true
-
-# Optional dashboard; keep loopback-bound and use SSH tunnel/Tailscale.
-hermes_dashboard_enabled: false
-
-# Source-controlled optional app runtime skills. Do not put secrets in this tree.
-hermes_runtime_skills_enabled: true
+# /etc/agent-vps/.env after apply.
 
 # Python tooling baseline. Installs uv and uvx into /usr/local/bin.
 install_uv: true
@@ -54,41 +41,6 @@ install_codex_review_helper: true
 # Claude skill install path for the operator/admin user.
 claude_skills_dir: "/home/{{ admin_user }}/.claude/skills"
 
-# Optional gateway URL prefetch. When enabled, the gateway retrieves public
-# HTTP(S) URLs before the first model call and passes the model artifact paths.
-hermes_url_prefetch_enabled: false
-
 # Optional private Firecrawl stack; keep loopback-bound.
 install_firecrawl: false
 firecrawl_enable_service: false
-
-# Optional private n8n stack; keep loopback-bound unless deliberately binding
-# to the VPS Tailscale IP. Set N8N_ENCRYPTION_KEY only in /etc/n8n/.env on
-# the VPS, never in this local vars file.
-install_n8n: false
-n8n_enable_service: false
-n8n_image: "docker.n8n.io/n8nio/n8n@sha256:<pinned-digest>"
-n8n_bind_address: "127.0.0.1"
-n8n_public_hostname: ""
-n8n_editor_base_url: "http://127.0.0.1:5678/"
-n8n_webhook_url: ""
-n8n_secure_cookie: false
-n8n_sqlite_backup_enabled: false
-n8n_sqlite_backup_timer_enabled: false
-n8n_sqlite_backup_age_recipient: ""
-n8n_sqlite_backup_sqlite_image: "keinos/sqlite3@sha256:<pinned-digest>"
-n8n_sqlite_backup_include_binary_data: false
-
-# Optional Cloudflare Tunnel for n8n public production webhooks only. Keep the
-# tunnel locally managed: create it with cloudflared, store credentials on the
-# VPS, and do not commit credentials or tunnel tokens.
-install_cloudflared: false
-cloudflared_enable_service: false
-cloudflared_install_method: "manual"
-cloudflared_tunnel_uuid: "__SET_ME__"
-cloudflared_hostname: "n8n.<domain>"
-cloudflared_hello_world_enabled: true
-cloudflared_n8n_webhook_enabled: false
-cloudflared_n8n_webhook_test_enabled: false
-cloudflared_n8n_webhook_waiting_enabled: false
-cloudflared_n8n_oauth_callback_enabled: false

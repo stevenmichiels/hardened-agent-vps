@@ -64,71 +64,31 @@
         owner: "{{ admin_user }}"
         group: "{{ admin_user }}"
         mode: "0755"
-      - path: "/opt/openclaw"
-        owner: root
-        group: root
-        mode: "0755"
       - path: "/var/backups"
         owner: root
         group: root
         mode: "0755"
     install_vps_ops: true
-    install_hermes: false
     install_firecrawl: false
-    install_n8n: false
-    install_cloudflared: false
     install_windmill: false
 
-    hermes_enable_service: false
-    hermes_require_telegram: true
-    hermes_require_allowed_users: true
-    hermes_user: "hermes"
-    hermes_group: "hermes"
-    hermes_uid: 10000
-    hermes_gid: 10000
-    hermes_dir: "/opt/hermes"
-    hermes_env_dir: "/etc/hermes"
-    hermes_data_dir: "/var/lib/hermes"
-    hermes_env_file: "/var/lib/hermes/.env"
-    hermes_compose_file: "/etc/hermes/docker-compose.yml"
-    hermes_container_name: "hermes"
-    hermes_runtime_skills_enabled: true
-    hermes_runtime_skills_src_dir: "{{ playbook_dir }}/../hermes-skills"
-    hermes_runtime_skills_dir: "/var/lib/hermes/skills"
-    hermes_url_prefetch_enabled: false
-    hermes_url_prefetch_max_urls: 3
-    hermes_url_prefetch_inline_chars: 12000
-    hermes_url_prefetch_artifact_dir: "/opt/data/artifacts/url-prefetch"
-    hermes_url_prefetch_firecrawl_url: "http://firecrawl:3002/v1/scrape"
-    hermes_image: "nousresearch/hermes-agent:v2026.5.7"
-    hermes_compose_pull: false
-    hermes_gateway_bind_address: "127.0.0.1"
-    hermes_gateway_port: 8642
-    hermes_dashboard_enabled: false
-    hermes_dashboard_bind_address: "127.0.0.1"
-    hermes_dashboard_port: 9119
-    hermes_memory_limit: "4g"
-    hermes_cpus: "2.0"
+    vps_ops_env_dir: "/etc/agent-vps"
+    vps_ops_env_file: "/etc/agent-vps/.env"
 
-    vps_ops_env_dir: "/etc/hermes-vps"
-    vps_ops_env_file: "/etc/hermes-vps/.env"
-
-    hermes_backup_dir: "/var/backups/hermes-vps"
-    hermes_backup_retention_days: 14
-    hermes_backup_timer_enabled: true
-    hermes_backup_on_calendar: "daily"
-    hermes_docker_cleanup_timer_enabled: true
-    hermes_docker_cleanup_on_calendar: "weekly"
-    hermes_release_check_timer_enabled: "{{ install_hermes | bool }}"
-    hermes_release_check_on_calendar: "daily"
-    hermes_healthcheck_timer_enabled: true
-    hermes_healthcheck_on_calendar: "*:0/5"
-    hermes_monitor_state_dir: "/var/lib/hermes-vps-monitor"
-    hermes_backup_offbox_enabled: false
-    hermes_backup_offbox_target: ""
-    hermes_backup_offbox_state_file: "/var/lib/hermes-vps-monitor/last-offbox-ok"
-    hermes_backup_offbox_pending_file: "/var/lib/hermes-vps-monitor/offbox-retry-pending"
-    hermes_backup_offbox_max_age_hours: 36
+    vps_backup_dir: "/var/backups/agent-vps"
+    vps_backup_retention_days: 14
+    vps_backup_timer_enabled: true
+    vps_backup_on_calendar: "daily"
+    vps_docker_cleanup_timer_enabled: true
+    vps_docker_cleanup_on_calendar: "weekly"
+    vps_healthcheck_timer_enabled: true
+    vps_healthcheck_on_calendar: "*:0/5"
+    vps_monitor_state_dir: "/var/lib/agent-vps-monitor"
+    vps_backup_offbox_enabled: false
+    vps_backup_offbox_target: ""
+    vps_backup_offbox_state_file: "/var/lib/agent-vps-monitor/last-offbox-ok"
+    vps_backup_offbox_pending_file: "/var/lib/agent-vps-monitor/offbox-retry-pending"
+    vps_backup_offbox_max_age_hours: 36
 
     # Optional private Firecrawl stack.
     firecrawl_enable_service: false
@@ -144,7 +104,6 @@
     firecrawl_postgres_image: "ghcr.io/firecrawl/nuq-postgres:latest"
     firecrawl_postgres_user: "firecrawl"
     firecrawl_postgres_db: "postgres"
-    firecrawl_hermes_network: "hermes_default"
     firecrawl_auto_generate_secrets: true
     firecrawl_compose_pull: false
     firecrawl_num_workers_per_queue: 2
@@ -160,38 +119,6 @@
     firecrawl_block_media: true
     firecrawl_logging_level: "INFO"
 
-    # Optional private n8n stack.
-    n8n_enable_service: false
-    n8n_image: "docker.n8n.io/n8nio/n8n@sha256:9f1f8e4c093c9924338bd168e3f813f746041d13b337753af0dbdd329e7b50f7"
-    n8n_timezone: "Europe/Brussels"
-    n8n_bind_address: "127.0.0.1"
-    n8n_host_port: 5678
-    n8n_public_hostname: ""
-    n8n_editor_base_url: "http://127.0.0.1:5678/"
-    n8n_webhook_url: ""
-    n8n_proxy_hops: 1
-    n8n_secure_cookie: false
-    n8n_sqlite_backup_enabled: false
-    n8n_sqlite_backup_timer_enabled: false
-    n8n_sqlite_backup_dir: "/var/backups/n8n"
-    n8n_sqlite_backup_age_recipient: ""
-    n8n_sqlite_backup_sqlite_image: "keinos/sqlite3@sha256:__SET_ME__"
-    n8n_sqlite_backup_include_binary_data: false
-    n8n_sqlite_backup_on_calendar: "daily"
-
-    # Optional Cloudflare Tunnel for n8n public webhooks only.
-    cloudflared_enable_service: false
-    cloudflared_install_method: "manual"
-    cloudflared_binary_path: "/usr/bin/cloudflared"
-    cloudflared_tunnel_name: "hermes-n8n"
-    cloudflared_tunnel_uuid: "__SET_ME__"
-    cloudflared_hostname: "n8n.<domain>"
-    cloudflared_hello_world_enabled: true
-    cloudflared_n8n_webhook_enabled: false
-    cloudflared_n8n_webhook_test_enabled: false
-    cloudflared_n8n_webhook_waiting_enabled: false
-    cloudflared_n8n_oauth_callback_enabled: false
-
     # Optional private Windmill stack.
     windmill_enable_service: false
     windmill_image: "ghcr.io/windmill-labs/windmill:1.712.0"
@@ -204,18 +131,18 @@
     auto_reboot: true
     auto_reboot_time: "03:30"
   pre_tasks:
-    - name: Check for local Hermes VPS config
+    - name: Check for local VPS config
       stat:
         path: "{{ playbook_dir }}/vars/local.yml"
-      register: hermes_vps_local_config
+      register: vps_local_config
       delegate_to: localhost
       become: false
       tags: always
 
-    - name: Load local Hermes VPS config
+    - name: Load local VPS config
       include_vars:
         file: "{{ playbook_dir }}/vars/local.yml"
-      when: hermes_vps_local_config.stat.exists
+      when: vps_local_config.stat.exists
       tags: always
   roles:
     - base
@@ -223,17 +150,8 @@
     - role: vps_ops
       when: install_vps_ops | bool
       tags: vps_ops
-    - role: hermes
-      when: install_hermes | bool
-      tags: hermes
     - role: firecrawl
       when: install_firecrawl | bool
-    - role: n8n
-      when: install_n8n | bool
-      tags: n8n
-    - role: cloudflared
-      when: install_cloudflared | bool
-      tags: cloudflared
     - role: windmill
       when: install_windmill | bool
       tags: windmill

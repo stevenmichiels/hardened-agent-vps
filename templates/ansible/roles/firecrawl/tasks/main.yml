@@ -28,11 +28,6 @@
     enabled: true
     state: started
 
-- name: Validate Hermes Docker network exists when enabling Firecrawl
-  command: "docker network inspect {{ firecrawl_hermes_network | default('hermes_default') }}"
-  changed_when: false
-  when: firecrawl_enable_service | default(false) | bool
-
 - name: Ensure Firecrawl directories exist
   file:
     path: "{{ item.path }}"
@@ -113,8 +108,6 @@
       value: "{{ (firecrawl_block_media | default(true)) | ternary('true', 'false') }}"
     - key: LOGGING_LEVEL
       value: "{{ firecrawl_logging_level | default('INFO') }}"
-    - key: FIRECRAWL_HERMES_NETWORK
-      value: "{{ firecrawl_hermes_network | default('hermes_default') }}"
 
 - name: Check whether Firecrawl Postgres password is already set
   shell: |

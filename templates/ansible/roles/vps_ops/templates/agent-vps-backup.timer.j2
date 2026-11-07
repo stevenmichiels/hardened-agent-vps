@@ -1,0 +1,9 @@
+[Unit]
+Description=Run VPS backup
+
+[Timer]
+OnCalendar={{ vps_backup_on_calendar }}
+Persistent=true
+
+[Install]
+WantedBy=timers.target

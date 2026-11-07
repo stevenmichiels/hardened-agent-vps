@@ -27,8 +27,8 @@ operator who intentionally exposes a private service.
   behind Tailscale in both UFW and the Hetzner firewall.
 - Validate non-root access before disabling root SSH or changing firewall rules.
 - Keep password authentication disabled.
-- Bind app gateways, Firecrawl, n8n, Windmill, and remote desktop to loopback or
-  the Tailscale network unless a separate public-ingress design is reviewed.
+- Bind Firecrawl, Windmill, and remote desktop to loopback or the Tailscale
+  network unless a separate public-ingress design is reviewed.
 - Do not apply Terraform when a plan unexpectedly replaces the VPS.
 - Do not let coding agents write directly to production runtime directories,
   env files, or databases.
@@ -50,17 +50,9 @@ These paths should be ignored by `.gitignore`. Runtime credentials belong in
 protected controller storage or service-specific VPS env files. Do not print
 secret values while checking whether they are present.
 
-Cloudflare's controller-side `cert.pem` is account-scoped. Tunnel credential
-JSON files can run their associated tunnel. Keep both outside the repository
-and deny local agent access where supported.
-
 ## Supply Chain
 
 - Review Terraform provider lockfile changes.
-- Keep the optional agent gateway pinned to an explicit release tag rather than
-  `latest`.
-- n8n defaults to a digest-pinned image and must not start until its encryption
-  key and user-management secret are set.
 - Firecrawl consists of coordinated upstream images that may default to moving
   tags; pin them in ignored local vars for production rollouts.
 - Review remote install scripts for Tailscale and Claude CLI, plus OS/npm
@@ -75,7 +67,7 @@ Before publishing a fork or support bundle:
 
 ```sh
 git status --short --ignored .
-git grep -n -I -E 'BEGIN .*PRIVATE KEY|OPENAI_API_KEY=.+|ANTHROPIC_API_KEY=.+|GITHUB_TOKEN=.+|GH_TOKEN=.+|TELEGRAM_BOT_TOKEN=.+|SLACK_.*TOKEN=.+|API_SERVER_KEY=.+|FIRECRAWL.*KEY=.+|HCLOUD_TOKEN=.+' -- . || true
+git grep -n -I -E 'BEGIN .*PRIVATE KEY|OPENAI_API_KEY=.+|ANTHROPIC_API_KEY=.+|GITHUB_TOKEN=.+|GH_TOKEN=.+|TELEGRAM_BOT_TOKEN=.+|SLACK_.*TOKEN=.+|FIRECRAWL.*KEY=.+|HCLOUD_TOKEN=.+' -- . || true
 git ls-files . | rg '(^|/)(inventory\.ini|terraform\.tfstate|terraform\.tfvars|tfplan|ansible-run\.log|local\.yml)$|\.terraform/' || true
 ```
 
@@ -112,7 +104,6 @@ Before using this template, operators should review:
 - Docker image tags, especially optional Firecrawl images that default to upstream `latest`.
 - Runtime env files and backup handling.
 
-Read [Private Access](docs/access.md),
-[n8n and Cloudflare Tunnel](docs/n8n-cloudflare.md), and
+Read [Private Access](docs/access.md) and
 [Operations and Recovery](docs/operations.md) before enabling their respective
 profiles.

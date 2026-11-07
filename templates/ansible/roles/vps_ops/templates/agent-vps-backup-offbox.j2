@@ -2,11 +2,11 @@
 set -euo pipefail
 umask 077
 
-BACKUP_DIR="{{ hermes_backup_dir }}"
-OFFBOX_ENABLED="{{ (hermes_backup_offbox_enabled | bool) | ternary('true', 'false') }}"
-OFFBOX_TARGET="{{ hermes_backup_offbox_target }}"
-STATE_FILE="{{ hermes_backup_offbox_state_file }}"
-PENDING_FILE="{{ hermes_backup_offbox_pending_file }}"
+BACKUP_DIR="{{ vps_backup_dir }}"
+OFFBOX_ENABLED="{{ (vps_backup_offbox_enabled | bool) | ternary('true', 'false') }}"
+OFFBOX_TARGET="{{ vps_backup_offbox_target }}"
+STATE_FILE="{{ vps_backup_offbox_state_file }}"
+PENDING_FILE="{{ vps_backup_offbox_pending_file }}"
 
 quote_remote() {
   printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"
@@ -18,7 +18,7 @@ if [ "$OFFBOX_ENABLED" != "true" ]; then
 fi
 
 if [[ ! "$OFFBOX_TARGET" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9._-]+:/[A-Za-z0-9._~/%+=:,@-]*$ ]]; then
-  echo "hermes_backup_offbox_target must look like user@host:/path and use shell-safe path characters" >&2
+  echo "vps_backup_offbox_target must look like user@host:/path and use shell-safe path characters" >&2
   exit 2
 fi
 

@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cmd="${1:-status}"
+shift || true
+
+needs_root() {
+  case "$cmd" in
+    status|backup|backup-offbox|healthcheck|docker-cleanup|timers)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+if needs_root && [ "${EUID:-$(id -u)}" -ne 0 ]; then
+  exec sudo /usr/local/bin/agent-vps "$cmd" "$@"
+fi
+
+case "$cmd" in
+  status)
+    exec /usr/local/sbin/agent-vps-status "$@"
+    ;;
+  backup)
+    exec /usr/local/sbin/agent-vps-backup "$@"
+    ;;
+  backup-offbox)
+    exec /usr/local/sbin/agent-vps-backup-offbox "$@"
+    ;;
+  healthcheck)
+    exec /usr/local/sbin/agent-vps-healthcheck "$@"
+    ;;
+  docker-cleanup)
+    exec /usr/local/sbin/agent-vps-docker-cleanup "$@"
+    ;;
+  timers)
+    exec systemctl list-timers --all agent-vps-backup.timer agent-vps-docker-cleanup.timer agent-vps-healthcheck.timer
+    ;;
+  help|-h|--help)
+    cat <<'USAGE'
+Usage: agent-vps <command>
+
+Commands:
+  status          Run the full VPS healthcheck
+  backup          Create an immediate VPS backup
+  backup-offbox   Upload and verify a VPS backup off-box
+  healthcheck     Run status and send Telegram transition alerts
+  docker-cleanup  Prune unused Docker containers/images/build cache
+  timers          Show VPS operator timers
+USAGE
+    ;;
+  *)
+    echo "Unknown command: $cmd" >&2
+    echo "Run: agent-vps help" >&2
+    exit 2
+    ;;
+esac

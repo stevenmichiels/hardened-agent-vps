@@ -46,16 +46,13 @@ Hetzner VPS
 |-- /home/<admin_user>/repos and agent-workspaces
 |-- /srv/apps for staged and production application zones
 |-- /opt and /var/lib for optional service runtimes
-|-- hermes-vps health, backup, release, and cleanup commands
-`-- /var/backups/hermes-vps
+|-- agent-vps health, backup, and cleanup commands
+`-- /var/backups/agent-vps
 ```
 
 The controller holds deployment intent and private local configuration. The VPS
 holds runtime state, private services, timers, and backups. Terraform owns the
 server and firewall shape; Ansible owns host configuration and service layout.
-The included operator CLI is named `hermes-vps`; this historical runtime name
-is retained for compatibility with existing commands, timers, paths, and
-automation.
 See [Private Integrations](docs/integrations.md) for the detailed directory and
 service boundaries.
 
@@ -65,12 +62,12 @@ service boundaries.
 - Host hardening, UFW, fail2ban, Docker, and Tailscale-aware access with Ansible.
 - Separated zones for applications, repositories, agent workspaces, services,
   and backups.
-- `hermes-vps` commands for health, backups, off-box verification, timers,
-  release checks, alerts, and Docker cleanup.
-- Encrypted n8n backups and a documented, verifiable recovery path.
-- Optional private n8n, Firecrawl, Windmill, agent gateway, and remote desktop
-  profiles.
-- Source-controlled Codex, Claude, and runtime skill templates.
+- `agent-vps` commands for health, backups, off-box verification, timers,
+  alerts, and Docker cleanup.
+- Backups with checksum-verified off-box copies and a documented recovery path.
+- Optional Claude Code CLI and Codex CLI installs.
+- Optional private Firecrawl, Windmill, and remote desktop profiles.
+- Source-controlled Codex and Claude skill templates.
 
 ## Quick Start
 
@@ -86,8 +83,8 @@ You need:
 - an SSH key and your current public `/32` for bootstrap; and
 - a Tailscale account for ongoing private access.
 
-Cloudflare, NoMachine, Telegram, and optional service credentials are needed
-only when their corresponding profiles are enabled.
+NoMachine, Telegram alert, and optional service credentials are needed only
+when their corresponding profiles are enabled.
 
 ### Create Local Configuration
 
@@ -138,9 +135,9 @@ exact staged procedure and configuration gates live in [SKILL.md](SKILL.md).
 Run on the VPS:
 
 ```sh
-sudo hermes-vps backup
-sudo hermes-vps status
-sudo hermes-vps timers
+sudo agent-vps backup
+sudo agent-vps status
+sudo agent-vps timers
 ```
 
 The default access model is OpenSSH over Tailscale, with Tailscale SSH itself
@@ -154,8 +151,7 @@ resources, Ansible rebuilds host configuration, and explicit backups restore
 persistent service state.
 
 Local retention pruning remains disabled until an off-box archive has been
-copied and checksum-verified. Recovery includes an isolated n8n database and
-credential-decryption test without printing secret values.
+copied and checksum-verified.
 
 Read [Operations and Recovery](docs/operations.md) and the detailed
 [restore runbook](references/restore.md).
@@ -173,8 +169,6 @@ chain notes, and pre-sharing checks.
 
 ## Optional Components
 
-- **n8n and public webhooks:** private editor plus narrowly routed Cloudflare
-  Tunnel ingress. [Guide](docs/n8n-cloudflare.md)
 - **Firecrawl and MCP integrations:** private host/container endpoints and
   user-local Codex configuration. [Guide](docs/integrations.md)
 - **Windmill:** private workflow automation backed by Postgres.
@@ -183,8 +177,6 @@ chain notes, and pre-sharing checks.
   [Guide](docs/remote-desktop.md)
 - **Codex/Claude cross-review:** one agent implements while the other reviews
   without edit tools. [Guide](docs/agent-workflows.md)
-- **Agent gateway:** optional containerized runtime with state isolated under
-  `/var/lib/hermes`; see [SKILL.md](SKILL.md) for enablement and validation.
 
 ## Repository Structure
 
@@ -199,15 +191,13 @@ chain notes, and pre-sharing checks.
     |-- infra/                Terraform server and firewall templates
     |-- ansible/              playbook, roles, and example local config
     |-- codex-skills/         Codex review skill templates
-    |-- claude-skills/        Claude review skill templates
-    `-- hermes-skills/        optional runtime skill templates
+    `-- claude-skills/        Claude review skill templates
 ```
 
 ## Documentation
 
 - [Private Access](docs/access.md)
 - [Operations and Recovery](docs/operations.md)
-- [n8n and Cloudflare Tunnel](docs/n8n-cloudflare.md)
 - [Private Integrations](docs/integrations.md)
 - [Remote Desktop](docs/remote-desktop.md)
 - [Agent Workflows](docs/agent-workflows.md)

@@ -1,0 +1,9 @@
+[Unit]
+Description=Run VPS healthcheck timer
+
+[Timer]
+OnCalendar={{ vps_healthcheck_on_calendar }}
+Persistent=true
+
+[Install]
+WantedBy=timers.target

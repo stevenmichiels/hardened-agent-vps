@@ -1,6 +1,6 @@
-server_name   = "hermes-vps"
+server_name   = "agent-vps"
 # Optional; defaults to "<server_name>-fw" when unset.
-# firewall_name = "hermes-vps-firewall"
+# firewall_name = "agent-vps-firewall"
 image         = "ubuntu-24.04"
 server_type   = "cx33"
 location      = "fsn1"

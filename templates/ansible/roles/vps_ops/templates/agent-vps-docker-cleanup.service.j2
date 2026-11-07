@@ -1,0 +1,6 @@
+[Unit]
+Description=Prune unused Docker artifacts on the VPS
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/agent-vps-docker-cleanup

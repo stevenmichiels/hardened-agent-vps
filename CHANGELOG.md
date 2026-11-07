@@ -4,6 +4,18 @@
 
 - Rename the repository and README title to `hardened-agent-vps`. GitHub
   redirects the old `dual-agent-vps` URLs.
+- Remove the optional Hermes Agent profile: its Ansible role, runtime skill
+  templates, URL-prefetch gateway, release check, and status checks.
+- Remove the optional n8n profile, its encrypted SQLite backups and restore
+  runbook, and the Cloudflare Tunnel role that only served n8n webhooks.
+- Remove the `/opt/openclaw` zone directory and the OpenClaw guidance.
+- Rename the operator CLI from `hermes-vps` to `agent-vps`, with matching
+  systemd units, paths (`/etc/agent-vps`, `/var/backups/agent-vps`,
+  `/var/lib/agent-vps-monitor`), and `vps_*` variables instead of `hermes_*`.
+- Firecrawl no longer joins an external app Docker network; only its API port
+  is published, on loopback.
+- Hosts deployed from v1.x keep the old `hermes-vps` units and paths. Rebuild
+  them rather than upgrading in place.
 
 ## v1.0.2 - 2026-09-18
 

@@ -101,9 +101,6 @@ services:
         condition: service_healthy
     networks:
       backend: null
-      hermes:
-        aliases:
-          - firecrawl
     ports:
       - "{{ firecrawl_api_bind_address | default('127.0.0.1') }}:${PORT:-{{ firecrawl_api_port | default(3002) }}}:${INTERNAL_PORT:-{{ firecrawl_internal_port | default(3002) }}}"
     command: node dist/src/harness.js --start-docker
@@ -168,9 +165,6 @@ services:
 networks:
   backend:
     driver: bridge
-  hermes:
-    external: true
-    name: ${FIRECRAWL_HERMES_NETWORK:-{{ firecrawl_hermes_network | default('hermes_default') }}}
 
 volumes:
   postgres-data:

@@ -1,0 +1,9 @@
+[Unit]
+Description=Run VPS Docker cleanup
+
+[Timer]
+OnCalendar={{ vps_docker_cleanup_on_calendar }}
+Persistent=true
+
+[Install]
+WantedBy=timers.target

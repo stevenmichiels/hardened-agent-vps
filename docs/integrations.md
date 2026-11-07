@@ -21,17 +21,13 @@ root-owned directory:
     `-- codex-cli
 
 /opt
-|-- hermes
-|-- openclaw
 `-- firecrawl
 
 /etc
-|-- firecrawl
-`-- n8n
+`-- firecrawl
 
 /var
-|-- lib/n8n
-`-- backups/hermes-vps
+`-- backups/agent-vps
 ```
 
 Concrete app and repository directories are created only when their names are
@@ -44,9 +40,8 @@ Firecrawl is a separate private service zone. Its compose files live under
 `/opt/firecrawl`, its secret-bearing env file lives under `/etc/firecrawl`, and
 its host API defaults to `http://127.0.0.1:3002`.
 
-Only the API service joins the optional app network, where containers can use
-the `http://firecrawl:3002` alias. Redis, RabbitMQ, and Postgres stay on the
-private Firecrawl backend network.
+Redis, RabbitMQ, and Postgres stay on the private Firecrawl backend network;
+only the API port is published, on loopback.
 
 The VPS backup includes `/etc/firecrawl` but not live Firecrawl Docker volumes.
 Use a separate cold volume backup if job history must survive a rebuild.
@@ -94,11 +89,6 @@ url = "https://docs.langchain.com/mcp"
 Prefer the official documentation MCP. Third-party code-search MCP packages can
 introduce separate login, data-handling, and credit models that need explicit
 review.
-
-## n8n and Cloudflare Tunnel
-
-n8n defaults to loopback and remains private even when production webhook
-ingress is enabled. See [n8n and Cloudflare Tunnel](n8n-cloudflare.md).
 
 ## Remote Desktop
 

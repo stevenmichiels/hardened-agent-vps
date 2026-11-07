@@ -178,7 +178,7 @@
     name: vm.swappiness
     value: "{{ swap_swappiness | default(10) }}"
     state: present
-    sysctl_file: /etc/sysctl.d/99-hermes-swap.conf
+    sysctl_file: /etc/sysctl.d/99-agent-vps-swap.conf
     reload: true
   when: swap_enabled | default(true) | bool
 
