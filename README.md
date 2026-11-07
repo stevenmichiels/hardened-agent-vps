@@ -43,7 +43,7 @@ Controller machine
 
 Hetzner VPS
 |-- OpenSSH restricted to the Tailscale network
-|-- /home/<admin_user>/repos and agent-workspaces
+|-- /home/<agent_user>/repos and agent-workspaces, without sudo or Docker
 |-- /srv/apps for staged and production application zones
 |-- /opt and /var/lib for optional service runtimes
 |-- agent-vps health, backup, and cleanup commands
@@ -65,7 +65,8 @@ service boundaries.
 - `agent-vps` commands for health, backups, off-box verification, timers,
   alerts, and Docker cleanup.
 - Backups with checksum-verified off-box copies and a documented recovery path.
-- Optional Claude Code CLI and Codex CLI installs.
+- Optional Claude Code CLI and Codex CLI installs, run as an unprivileged
+  `agent` user without sudo or Docker.
 - Optional private Firecrawl and remote desktop profiles.
 - Source-controlled Claude skill templates.
 

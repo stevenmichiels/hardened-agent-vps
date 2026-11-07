@@ -6,6 +6,22 @@ directories, production env files, or production databases. Move changes to
 live systems through reviewed Git diffs, CI/deploy scripts, Ansible, or an
 explicit staging promotion.
 
+## Run Agents as the Agent User
+
+Claude Code and Codex run as `agent_user` (default `agent`). That account has no
+sudo and is not in the `docker` group, because either one gives root on the
+host. Start agents from an admin SSH session:
+
+```sh
+sudo -iu agent
+cd ~/repos/project
+claude
+```
+
+Sign in to Claude Code and Codex as that user, and give it only the Git and API
+credentials the agents need. Root-only files such as `/etc/agent-vps/.env` stay
+out of its reach. Work that needs Docker or root goes through the admin user.
+
 ## Dual-Agent Review Pattern
 
 Claude Code implements and Codex reviews. Do not let both agents edit the same

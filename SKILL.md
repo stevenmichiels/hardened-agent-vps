@@ -44,13 +44,13 @@ Provision and harden a Hetzner Cloud VPS in a repeatable, safe-by-default workfl
 - Keep live applications, staging, source repos, and long-running agent services as separate zones. Good default paths:
   - `/srv/apps/production-site` for live app runtime
   - `/srv/apps/staging-site` for staging/test runtime
-  - `/home/<admin_user>/repos/project` for ordinary Git checkouts where Claude Code CLI, Codex CLI, or an operator edits code
-  - `/home/<admin_user>/agent-workspaces/claude-code` for disposable/agent-specific workspaces
-  - `/home/<admin_user>/agent-workspaces/codex-cli` for Codex CLI scratch work and separate sessions
+  - `/home/<agent_user>/repos/project` for ordinary Git checkouts where Claude Code CLI, Codex CLI, or an operator edits code
+  - `/home/<agent_user>/agent-workspaces/claude-code` for disposable/agent-specific workspaces
+  - `/home/<agent_user>/agent-workspaces/codex-cli` for Codex CLI scratch work and separate sessions
   - `/opt/firecrawl` plus `/etc/firecrawl` for the optional private Firecrawl stack
   - `/var/backups` for backups
-- The Ansible baseline creates the parent zone directories by default: `/srv/apps`, `/home/<admin_user>/repos`, `/home/<admin_user>/agent-workspaces`, and `/var/backups`. The Firecrawl role manages `/opt/firecrawl` and `/etc/firecrawl` only when Firecrawl is enabled. Create concrete app/repo directories only when the real app or repo name is known.
-- Prefer separate Unix users for persistent services when co-hosting multiple agents: an admin SSH user for operators, and service users such as `claude-agent` and `codex-agent` when their permissions or runtime state need isolation.
+- The Ansible baseline creates the parent zone directories by default: `/srv/apps`, `/home/<agent_user>/repos`, `/home/<agent_user>/agent-workspaces`, and `/var/backups`. The Firecrawl role manages `/opt/firecrawl` and `/etc/firecrawl` only when Firecrawl is enabled. Create concrete app/repo directories only when the real app or repo name is known.
+- Run Claude Code and Codex as `agent_user` (default `agent`), never as the admin user. The agent user has no sudo and is not in the `docker` group, because either one gives root on the host. The admin user keeps both for the operator. Start agents from an admin SSH session with `sudo -iu agent`, and give the agent user only its own narrow Git and API credentials.
 - Treat Claude Code CLI and Codex CLI as interactive coding tools by default: run them in SSH/tmux/mosh sessions against Git repos or disposable workspaces, with separate auth/config directories when possible.
 - Use the dual-agent review pattern when helpful: Claude Code develops, Codex produces a read-only Markdown review. Do not let both agents edit the same worktree at the same time.
 - AI agents must not write directly to `/srv/apps/production-*`, `/var/www`, production `.env` files, or production databases. Use Git, reviewed diffs, CI/deploy scripts, Ansible, or a staging promotion step.
@@ -266,6 +266,7 @@ Provision and harden a Hetzner Cloud VPS in a repeatable, safe-by-default workfl
 
 ## Inputs / knobs (Ansible)
 - `admin_user` (default: `admin`)
+- `agent_user` (default: `agent`; unprivileged account for Claude Code and Codex, without sudo or the `docker` group; must differ from `root` and `admin_user`)
 - `admin_authorized_keys` (default: `[]`; required before `disable_root_login=true`)
 - `disable_root_login` (default: `false`)
 - `tailscale_ssh_source_cidr` (default: `100.64.0.0/10`)
@@ -288,10 +289,10 @@ Provision and harden a Hetzner Cloud VPS in a repeatable, safe-by-default workfl
 - `nomachine_disable_firewall_autoconfig` (default: `true`)
 - `install_codex_review_helper` (default: `true`; installs `claude-codex-review`)
 - `codex_review_helper_path` (default: `/usr/local/bin/claude-codex-review`)
-- `claude_skills_dir` (default: `/home/<admin_user>/.claude/skills`)
+- `claude_skills_dir` (default: `/home/<agent_user>/.claude/skills`)
 - `claude_codex_review_skill_src_dir` (default: `templates/claude-skills/codex-review`)
 - `vps_zone_dirs_enabled` (default: `true`)
-- `vps_zone_dirs` (default parent zones: `/srv/apps`, `/home/<admin_user>/repos`, `/home/<admin_user>/agent-workspaces`, `/var/backups`; VPS ops manages the backup/monitoring paths; Firecrawl role manages `/opt/firecrawl` and `/etc/firecrawl` when enabled)
+- `vps_zone_dirs` (default parent zones: `/srv/apps`, `/home/<agent_user>/repos`, `/home/<agent_user>/agent-workspaces`, `/var/backups`; VPS ops manages the backup/monitoring paths; Firecrawl role manages `/opt/firecrawl` and `/etc/firecrawl` when enabled)
 - `install_vps_ops` (default: `true`; installs `agent-vps` operator commands, backups, health checks, and cleanup timers)
 - `vps_ops_env_dir`, `vps_ops_env_file` (defaults: `/etc/agent-vps`, `/etc/agent-vps/.env`; sole source for optional Telegram notification settings for health-state changes)
 - `install_claude_code` (default: `false`; installs Claude Code CLI with the official installer)
@@ -449,7 +450,7 @@ Provision and harden a Hetzner Cloud VPS in a repeatable, safe-by-default workfl
 - If API restarts with `relation "nuq.queue_*" does not exist`, ensure `POSTGRES_DB=postgres`; if this is a fresh failed init, recreate only Firecrawl volumes with `docker compose --env-file /etc/firecrawl/firecrawl.env -f /opt/firecrawl/docker-compose.yml down -v`, then `up -d`.
 
 ## Codex CLI Firecrawl access
-- Keep Firecrawl hosted as its own private service stack under `/opt/firecrawl` and `/etc/firecrawl`; do not move it under `/home/<admin_user>` just so Codex CLI can use it.
+- Keep Firecrawl hosted as its own private service stack under `/opt/firecrawl` and `/etc/firecrawl`; do not move it under `/home/<agent_user>` just so Codex CLI can use it.
 - Codex CLI runs on the VPS host, so it can reach the private Firecrawl API through `http://127.0.0.1:3002` when Firecrawl is enabled.
 - Preferred Codex integration is a local MCP server that points to the private host endpoint:
   ```bash
@@ -466,7 +467,7 @@ Provision and harden a Hetzner Cloud VPS in a repeatable, safe-by-default workfl
 - For a VPS workbench, keep `~/.codex/config.toml` host-specific and small:
   use `sandbox_mode = "workspace-write"`, `approval_policy = "on-request"`,
   `sandbox_workspace_write.network_access = true`, and `writable_roots` limited
-  to `/home/<admin_user>/repos`, `/home/<admin_user>/agent-workspaces`, and
+  to `/home/<agent_user>/repos`, `/home/<agent_user>/agent-workspaces`, and
   `/tmp`. Trust those concrete workbench paths, not the whole home directory.
 - Do not copy a macOS Codex config directly to the VPS; rewrite Homebrew paths,
   `/Users/...` project paths, local AWS credential paths, and plugin lists for
@@ -479,7 +480,7 @@ Provision and harden a Hetzner Cloud VPS in a repeatable, safe-by-default workfl
   - `codex mcp list`
   - `command -v bwrap && bwrap --version`
   - `bwrap --unshare-user --unshare-net --ro-bind / / /bin/true`
-  - `cd /home/<admin_user>/agent-workspaces && codex sandbox linux -- bash -lc 'pwd && echo sandbox_ok'`
+  - `cd /home/<agent_user>/agent-workspaces && codex sandbox linux -- bash -lc 'pwd && echo sandbox_ok'`
   - `curl -fsS http://127.0.0.1:3002`
   - In an interactive Codex session, ask Codex to use the `firecrawl` MCP server to scrape a public test page.
 - For non-interactive `codex exec`, MCP tool approval can cancel the tool call unless the run is interactive or explicitly configured to allow the call. Use bypass only for a controlled smoke test in an empty/safe workspace, never as the default operating mode.

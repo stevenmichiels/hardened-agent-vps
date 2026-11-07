@@ -6,6 +6,12 @@
   and `windmill_*` variables, its status checks, and its backup paths. Its
   worker ran privileged by default. Hosts with Windmill keep `/etc/windmill`,
   `/var/lib/windmill`, and the containers; stop and remove them by hand.
+- Add an unprivileged `agent_user` (default `agent`) for Claude Code and Codex,
+  without sudo or the `docker` group. The `repos` and `agent-workspaces` zones
+  and the `codex-review` Claude skill move to its home. On existing hosts the
+  next Ansible run creates the user; checkouts, Claude and Codex logins, and
+  `~/.claude/skills/codex-review` under the admin home stay until you move or
+  remove them.
 
 ## v3.0.1 - 2026-11-07
 

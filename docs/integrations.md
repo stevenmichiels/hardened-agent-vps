@@ -14,7 +14,7 @@ root-owned directory:
 |-- production-site
 `-- staging-site
 
-/home/<admin_user>
+/home/<agent_user>
 |-- repos/project
 `-- agent-workspaces
     |-- claude-code

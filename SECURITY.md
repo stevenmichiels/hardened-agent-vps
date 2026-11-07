@@ -32,6 +32,8 @@ operator who intentionally exposes a private service.
 - Do not apply Terraform when a plan unexpectedly replaces the VPS.
 - Do not let coding agents write directly to production runtime directories,
   env files, or databases.
+- Run coding agents as `agent_user`, without sudo or the `docker` group, not as
+  the admin user, which has both.
 
 ## Secrets and Local Files
 

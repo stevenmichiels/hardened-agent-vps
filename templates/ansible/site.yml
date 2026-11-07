@@ -4,6 +4,7 @@
     admin_user: "admin"
     admin_authorized_keys: []
     admin_user_passwordless_sudo: true
+    agent_user: "agent"
     disable_root_login: false
 
     tailscale_ssh_source_cidr: "100.64.0.0/10"
@@ -44,7 +45,7 @@
     install_codex_cli: false
     install_codex_review_helper: true
     codex_review_helper_path: "/usr/local/bin/claude-codex-review"
-    claude_skills_dir: "/home/{{ admin_user }}/.claude/skills"
+    claude_skills_dir: "/home/{{ agent_user }}/.claude/skills"
     claude_codex_review_skill_src_dir: "{{ playbook_dir }}/../claude-skills/codex-review"
     vps_zone_dirs_enabled: true
     vps_zone_dirs:
@@ -52,13 +53,13 @@
         owner: root
         group: root
         mode: "0755"
-      - path: "/home/{{ admin_user }}/repos"
-        owner: "{{ admin_user }}"
-        group: "{{ admin_user }}"
+      - path: "/home/{{ agent_user }}/repos"
+        owner: "{{ agent_user }}"
+        group: "{{ agent_user }}"
         mode: "0755"
-      - path: "/home/{{ admin_user }}/agent-workspaces"
-        owner: "{{ admin_user }}"
-        group: "{{ admin_user }}"
+      - path: "/home/{{ agent_user }}/agent-workspaces"
+        owner: "{{ agent_user }}"
+        group: "{{ agent_user }}"
         mode: "0755"
       - path: "/var/backups"
         owner: root

@@ -5,8 +5,12 @@ admin_user: "<admin_user>"
 admin_authorized_keys:
   - "ssh-ed25519 <public-key> <label>"
 
+# Unprivileged account for Claude Code and Codex: no sudo, no docker group.
+# Start agents from an admin session with `sudo -iu agent`.
+agent_user: "agent"
+
 # Managed parent directories for the VPS zoning model:
-# /srv/apps, /home/<admin_user>/repos, /home/<admin_user>/agent-workspaces,
+# /srv/apps, /home/<agent_user>/repos, /home/<agent_user>/agent-workspaces,
 # and /var/backups.
 vps_zone_dirs_enabled: true
 
@@ -33,8 +37,8 @@ install_nomachine: false
 
 # Optional helper for Claude -> Codex read-only review reports.
 install_codex_review_helper: true
-# Claude skill install path for the operator/admin user.
-claude_skills_dir: "/home/{{ admin_user }}/.claude/skills"
+# Claude skill install path for the agent user.
+claude_skills_dir: "/home/{{ agent_user }}/.claude/skills"
 
 # Optional private Firecrawl stack; keep loopback-bound.
 install_firecrawl: false
