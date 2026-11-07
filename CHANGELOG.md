@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Rename the repository and README title to `hardened-agent-vps`. GitHub
+  redirects the old `dual-agent-vps` URLs.
+
 ## v1.0.2 - 2026-09-18
 
 v1.0.2 is a documentation-architecture patch that turns the README into a

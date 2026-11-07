@@ -1,4 +1,4 @@
-# dual-agent-vps
+# hardened-agent-vps
 
 A reproducible, private-by-default VPS setup for running coding agents and
 automation away from my laptop.

@@ -108,7 +108,7 @@ artifacts, revoke or rotate it in the Ubuntu Pro dashboard.
 ## Release Context
 
 See [CHANGELOG.md](../CHANGELOG.md) and the
-[v1.0.0 release notes](https://github.com/stevenmichiels/dual-agent-vps/releases/tag/v1.0.0)
+[v1.0.0 release notes](https://github.com/stevenmichiels/hardened-agent-vps/releases/tag/v1.0.0)
 for the deployment-ready workbench baseline. The
-[v0.4.0 release notes](https://github.com/stevenmichiels/dual-agent-vps/releases/tag/v0.4.0)
+[v0.4.0 release notes](https://github.com/stevenmichiels/hardened-agent-vps/releases/tag/v0.4.0)
 document the public-webhook/private-editor n8n milestone.
