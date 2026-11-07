@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v3.0.0 - 2026-11-07
+
+v3.0.0 makes Claude Code the implementer and Codex the reviewer. The
+Codex-to-Claude review direction is gone, so the workbench installs only Claude
+skills.
+
 - Make Claude Code the implementer and Codex the reviewer. Remove the
   `claude-review` Codex skill template and the `codex-claude-review` helper,
   with the `install_claude_review_helper`, `claude_review_helper_path`,
@@ -9,6 +15,14 @@
   `codex-review` Claude skill and `claude-codex-review` stay.
 - Hosts provisioned earlier keep `/usr/local/bin/codex-claude-review` and
   `~/.codex/skills/claude-review`; remove them by hand.
+
+Validation:
+
+- `ansible-playbook -i inventory.ini.example site.yml --syntax-check`
+- `bash -n templates/claude-skills/codex-review/scripts/claude-codex-review`
+- `git diff --check`
+- Scan for leftover `codex-claude-review`, `claude-review`, and
+  `codex_skills_dir` references outside the changelog history
 
 ## v2.0.0 - 2026-11-07
 
