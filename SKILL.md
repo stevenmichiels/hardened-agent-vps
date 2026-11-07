@@ -225,6 +225,7 @@ Provision and harden a Hetzner Cloud VPS in a repeatable, safe-by-default workfl
 9) For existing servers, never apply Terraform if plan shows `hcloud_server` destroy/replace unless rebuild is explicitly intended.
 10) Keep deterministic artifacts as source of truth: Terraform + Ansible templates in this skill.
 11) Keep production apps, staging, repos, and agent workspaces isolated; never let an agent directly mutate production runtime files or share production secrets by default.
+12) Run coding agents as `agent_user`, never as the admin user or root. The admin user keeps passwordless sudo and the `docker` group on purpose for Ansible and operator work, so an agent started there has root on the host.
 
 ## Credential loading (Hetzner token)
 - Preferred/default path for local controller work: use the protected `hctf` wrapper when available.
