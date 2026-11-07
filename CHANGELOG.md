@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `LEARNINGS.md`: join Tailscale right after the first run, keep the two
+  bootstrap `/32` values equal, recover a lockout through the Hetzner web
+  console, fix an invalid `hctf` token, and delete saved plans after apply.
+
 ## v4.0.0 - 2026-11-07
 
 v4.0.0 follows a security review: coding agents run as an unprivileged user,
