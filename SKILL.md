@@ -217,7 +217,7 @@ Provision and harden a Hetzner Cloud VPS in a repeatable, safe-by-default workfl
 1) Never leave SSH open to the whole internet. SSH must be restricted to a bootstrap `/32`, then Tailscale-only.
 2) Never enable UFW without allow rules that preserve access.
 3) Root login disable is gated: validate non-root SSH first, then set `disable_root_login=true`.
-4) Never enable password login. Keep `PasswordAuthentication no`.
+4) Never enable password login. Keep `PasswordAuthentication no`. The security role sets it in `/etc/ssh/sshd_config.d/00-agent-vps-hardening.conf`, which sshd reads first, and fails the run when `sshd -T` shows another value.
 5) Never print secrets. Never commit API keys, bot tokens, OAuth files, pairing state, or service `.env` files.
 6) Keep optional service ports private by default: bind published ports to `127.0.0.1` and access via SSH tunnel or Tailscale.
 7) Keep Firecrawl private by default: bind the API to `127.0.0.1`.

@@ -12,6 +12,12 @@
   next Ansible run creates the user; checkouts, Claude and Codex logins, and
   `~/.claude/skills/codex-review` under the admin home stay until you move or
   remove them.
+- Set SSH hardening in `/etc/ssh/sshd_config.d/00-agent-vps-hardening.conf`,
+  validated with `sshd -t`, instead of `lineinfile` edits in
+  `/etc/ssh/sshd_config`. sshd keeps the first value it reads, so a drop-in
+  such as `50-cloud-init.conf` could override the old edits. The file also sets
+  `KbdInteractiveAuthentication no`, and the run fails when `sshd -T` shows
+  other effective values.
 
 ## v3.0.1 - 2026-11-07
 

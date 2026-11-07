@@ -1,17 +1,33 @@
-- name: Disable SSH password auth
-  lineinfile:
-    path: /etc/ssh/sshd_config
-    regexp: '^PasswordAuthentication\s+'
-    line: 'PasswordAuthentication no'
+- name: Harden SSH in a drop-in that sshd reads first
+  copy:
+    dest: /etc/ssh/sshd_config.d/00-agent-vps-hardening.conf
+    content: |
+      # Managed by Ansible. sshd keeps the first value it reads, and this file
+      # sorts before other drop-ins such as 50-cloud-init.conf.
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      PermitRootLogin {{ 'no' if disable_root_login | bool else 'prohibit-password' }}
+    owner: root
+    group: root
+    mode: "0644"
+    validate: /usr/sbin/sshd -t -f %s
   notify: Restart SSH
 
-- name: Disable root login (gated)
-  lineinfile:
-    path: /etc/ssh/sshd_config
-    regexp: '^PermitRootLogin\s+'
-    line: 'PermitRootLogin no'
-  when: disable_root_login | bool
-  notify: Restart SSH
+- name: Read effective SSH settings
+  command: /usr/sbin/sshd -T
+  register: sshd_effective
+  changed_when: false
+  check_mode: false
+
+- name: Check effective SSH settings
+  assert:
+    that:
+      - "'passwordauthentication no' in sshd_effective.stdout_lines"
+      - "'kbdinteractiveauthentication no' in sshd_effective.stdout_lines"
+      - "not (disable_root_login | bool) or 'permitrootlogin no' in sshd_effective.stdout_lines"
+    fail_msg: >
+      sshd -T shows other values than the hardening drop-in. Another file under
+      /etc/ssh sets them first; fix that before SSH restarts.
 
 - name: Guard against first-run SSH lockout
   assert:
